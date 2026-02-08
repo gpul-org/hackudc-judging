@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation"
 
 const routeNames: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/dashboard/pending-users": "Pending Users",
   "/dashboard/participants": "Participants",
   "/dashboard/teams": "Teams",
   "/dashboard/submissions": "Submissions",

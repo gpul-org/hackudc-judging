@@ -14,9 +14,9 @@ import {
   Gavel,
   Home,
   Trophy,
+  Upload,
   UserCog,
-  Users,
-  UsersRound
+  Users
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -30,7 +30,13 @@ const navItems = [
   {
     title: "Pending Users",
     href: "/dashboard/pending-users",
-    icon: UserCog
+    icon: UserCog,
+    separatorAfter: true
+  },
+  {
+    title: "Upload",
+    href: "/dashboard/upload",
+    icon: Upload
   },
   {
     title: "Participants",
@@ -38,14 +44,10 @@ const navItems = [
     icon: Users
   },
   {
-    title: "Teams",
-    href: "/dashboard/teams",
-    icon: UsersRound
-  },
-  {
-    title: "Submissions",
-    href: "/dashboard/submissions",
-    icon: FileText
+    title: "Projects",
+    href: "/dashboard/projects",
+    icon: FileText,
+    separatorAfter: true
   },
   {
     title: "Judges",
@@ -71,15 +73,12 @@ export function DashboardNav() {
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu>
-          {navItems.map((item, index) => {
+          {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
 
             return (
               <div key={item.href}>
-                {(index === 2 || index === 5) && (
-                  <Separator className="mx-auto my-2 w-3/4" />
-                )}
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -96,6 +95,9 @@ export function DashboardNav() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                {item.separatorAfter && (
+                  <Separator className="mx-auto my-2 w-3/4" />
+                )}
               </div>
             )
           })}

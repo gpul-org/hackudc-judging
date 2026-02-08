@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -117,11 +118,22 @@ export default function ParticipantsPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell className="py-3 pl-6">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <Skeleton className="h-4 w-40" />
+                  </TableCell>
+                  <TableCell className="pr-4 text-right">
+                    <Skeleton className="ml-auto h-8 w-8 rounded-md" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : paginatedParticipants.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center">

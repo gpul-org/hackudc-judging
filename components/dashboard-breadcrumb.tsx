@@ -8,6 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
+import { Skeleton } from "@/components/ui/skeleton"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -98,7 +99,9 @@ export function DashboardBreadcrumb() {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>{currentLabel || "..."}</BreadcrumbPage>
+          <BreadcrumbPage>
+            {currentLabel || <Skeleton className="h-4 w-24" />}
+          </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

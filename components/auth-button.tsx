@@ -2,10 +2,10 @@
 
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
+import { Gavel } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { LogoutButton } from "./logout-button"
 import { Button } from "./ui/button"
 
 export function AuthButton() {
@@ -39,14 +39,19 @@ export function AuthButton() {
     <div className="flex items-center gap-2">
       {!isOnDashboard && (
         <Button asChild size="sm" variant={"default"}>
-          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Gavel className="h-4 w-4" />
+            Judging Area
+          </Link>
         </Button>
       )}
-      <LogoutButton />
     </div>
   ) : (
     <Button asChild size="sm" variant={"default"}>
-      <Link href="/auth/login">Sign in</Link>
+      <Link href="/auth/login" className="flex items-center gap-2">
+        <Gavel className="h-4 w-4" />
+        Judging Area
+      </Link>
     </Button>
   )
 }

@@ -138,8 +138,10 @@ export function SignUpForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Enter your email to get started</CardDescription>
+          <CardTitle className="text-2xl">Judge & Admin Sign Up</CardTitle>
+          <CardDescription>
+            For judges and administrators only. Enter your email to get started.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSendOtp}>

@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
-import { RefreshCw } from "lucide-react"
+import { FastForward, LogOut, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -128,8 +128,29 @@ export default function PendingPage() {
     setIsSaving(false)
   }
 
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
+      <div className="flex w-full max-w-2xl items-center justify-between">
+        <div className="flex items-center gap-3">
+          <FastForward className="h-10 w-10" />
+          <span className="text-3xl font-bold">FastTrack</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLogout}
+          className="text-muted-foreground"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
+        </Button>
+      </div>
       <div className="w-full max-w-2xl space-y-6">
         <Card className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950">
           <CardHeader>

@@ -5,8 +5,10 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarHeader,
   SidebarProvider
 } from "@/components/ui/sidebar"
+import { FastForward } from "lucide-react"
 
 export default function DashboardLayout({
   children
@@ -17,6 +19,10 @@ export default function DashboardLayout({
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="none" className="w-48 border-r">
+          <SidebarHeader className="flex flex-row items-center justify-center gap-2 border-b p-4">
+            <FastForward className="h-6 w-6" />
+            <span className="text-lg font-semibold">FastTrack</span>
+          </SidebarHeader>
           <SidebarContent>
             <DashboardNav />
           </SidebarContent>

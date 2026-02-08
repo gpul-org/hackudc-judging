@@ -25,17 +25,26 @@ const routeNames: Record<string, string> = {
 export function DashboardBreadcrumb() {
   const pathname = usePathname()
   const currentPage = routeNames[pathname] || "Dashboard"
+  const isSubPage = pathname !== "/dashboard"
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/dashboard">FasTrack</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{currentPage}</BreadcrumbPage>
-        </BreadcrumbItem>
+        {isSubPage ? (
+          <>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{currentPage}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </>
+        ) : (
+          <BreadcrumbItem>
+            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+          </BreadcrumbItem>
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   )

@@ -1,7 +1,6 @@
 import { AuthButton } from "@/components/auth-button"
-import { EnvVarWarning } from "@/components/env-var-warning"
 import { ThemeSwitcher } from "@/components/theme-switcher"
-import { hasEnvVars } from "@/lib/utils"
+import { FastForward } from "lucide-react"
 
 export default function Home() {
   return (
@@ -10,11 +9,14 @@ export default function Home() {
         <nav className="flex h-16 w-full justify-center border-b border-b-foreground/10">
           <div className="flex w-full max-w-5xl items-center justify-between p-3 px-5 text-sm">
             <div className="flex items-center gap-5 font-semibold">
-              <span className="text-xl">FasTrack</span>
+              <div className="flex items-center gap-2 text-xl">
+                <FastForward className="h-5 w-5" />
+                <span>FastTrack</span>
+              </div>
             </div>
             <div className="flex items-center gap-4">
-              {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
               <ThemeSwitcher />
+              <AuthButton />
             </div>
           </div>
         </nav>

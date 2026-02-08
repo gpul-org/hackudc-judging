@@ -26,7 +26,7 @@ import { toast } from "sonner"
 type Profile = {
   first_name: string | null
   last_name: string | null
-  role: "hacker" | "judge" | "admin"
+  role: "judge" | "admin" | null
 }
 
 export default function ProfilePage() {
@@ -94,7 +94,9 @@ export default function ProfilePage() {
 
   const displayRole = profile?.role
     ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-    : "User"
+    : profile?.role === null
+      ? "Pending"
+      : "User"
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6">
@@ -198,9 +200,9 @@ export default function ProfilePage() {
                       <SelectValue placeholder={loading ? "" : displayRole} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Hacker">Hacker</SelectItem>
                       <SelectItem value="Judge">Judge</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

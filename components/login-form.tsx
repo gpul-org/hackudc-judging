@@ -55,13 +55,27 @@ export function LoginForm({
     setError(null)
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: "email"
       })
       if (error) throw error
-      router.push("/dashboard")
+
+      // Check user's role and redirect accordingly
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single()
+
+        if (profile?.role === null) {
+          router.push("/pending")
+        } else {
+          router.push("/dashboard")
+        }
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {

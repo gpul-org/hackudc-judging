@@ -10,7 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
-import { LogOut, Monitor, Moon, Sun } from "lucide-react"
+import { Gavel, LogOut, Monitor, Moon, Shield, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -19,7 +19,7 @@ import { useEffect, useState } from "react"
 type Profile = {
   first_name: string | null
   last_name: string | null
-  role: "hacker" | "judge" | "admin"
+  role: "judge" | "admin" | null
 }
 
 export function SidebarUser() {
@@ -90,7 +90,9 @@ export function SidebarUser() {
 
   const displayRole = profile?.role
     ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-    : "User"
+    : profile?.role === null
+      ? "Pending"
+      : "User"
 
   return (
     <div className="flex items-center justify-between gap-2">
@@ -106,9 +108,11 @@ export function SidebarUser() {
         ) : (
           <>
             <p className="truncate text-sm font-medium">{displayName}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {displayRole}
-            </p>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {profile?.role === "admin" && <Shield className="h-3 w-3" />}
+              {profile?.role === "judge" && <Gavel className="h-3 w-3" />}
+              <p className="truncate">{displayRole}</p>
+            </div>
           </>
         )}
       </Link>

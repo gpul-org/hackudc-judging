@@ -7,7 +7,6 @@ import {
   SidebarFooter,
   SidebarProvider
 } from "@/components/ui/sidebar"
-import { Toaster } from "sonner"
 
 export default function DashboardLayout({
   children
@@ -16,7 +15,6 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <Toaster position="top-right" />
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="none" className="w-48 border-r">
           <SidebarContent>

@@ -12,13 +12,25 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       type,
       token_hash
     })
-    if (!error) {
-      // redirect user to dashboard after successful authentication
-      redirect(next)
+    if (!error && data.user) {
+      // Check user's role and redirect accordingly
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single()
+
+      if (profile?.role === null) {
+        // Pending approval
+        redirect("/pending")
+      } else {
+        // Judge or admin - go to dashboard
+        redirect(next)
+      }
     } else {
       // redirect the user to an error page with some instructions
       redirect(`/auth/error?error=${error?.message}`)

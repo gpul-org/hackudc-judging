@@ -9,6 +9,7 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
 import { usePathname } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
 
 const routeNames: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -24,27 +25,81 @@ const routeNames: Record<string, string> = {
 
 export function DashboardBreadcrumb() {
   const pathname = usePathname()
-  const currentPage = routeNames[pathname] || "Dashboard"
-  const isSubPage = pathname !== "/dashboard"
+  const [dynamicLabel, setDynamicLabel] = useState<{
+    path: string
+    label: string
+  } | null>(null)
+
+  useEffect(() => {
+    const handleBreadcrumbUpdate = (e: CustomEvent<string>) => {
+      setDynamicLabel({ path: pathname, label: e.detail })
+    }
+
+    window.addEventListener(
+      "breadcrumbLabel",
+      handleBreadcrumbUpdate as EventListener
+    )
+    return () => {
+      window.removeEventListener(
+        "breadcrumbLabel",
+        handleBreadcrumbUpdate as EventListener
+      )
+    }
+  }, [pathname])
+
+  const currentLabel = useMemo(
+    () => (dynamicLabel?.path === pathname ? dynamicLabel.label : null),
+    [dynamicLabel, pathname]
+  )
+
+  if (pathname === "/dashboard") {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    )
+  }
+
+  const parentPath = pathname.split("/").slice(0, 3).join("/")
+  const parentName = routeNames[parentPath]
+  const isDirectChild = routeNames[pathname] !== undefined
+
+  if (isDirectChild) {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{routeNames[pathname]}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    )
+  }
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {isSubPage ? (
-          <>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{currentPage}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </>
-        ) : (
-          <BreadcrumbItem>
-            <BreadcrumbPage>Dashboard</BreadcrumbPage>
-          </BreadcrumbItem>
-        )}
+        <BreadcrumbItem>
+          <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink href={parentPath}>
+            {parentName || "Page"}
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>{currentLabel || "..."}</BreadcrumbPage>
+        </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   )

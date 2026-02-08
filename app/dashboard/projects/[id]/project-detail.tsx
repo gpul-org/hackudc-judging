@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -98,24 +99,30 @@ export function ProjectDetail({ id }: { id: string }) {
         <h1 className="text-2xl font-bold">Project Details</h1>
       </div>
 
-      <Card className="max-w-3xl shadow-none">
+      <Card className="shadow-none">
         <CardContent className="p-0">
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">Title</Label>
-            <div className="max-w-md flex-1 text-sm">
-              {loading ? "" : submission?.title || "Untitled"}
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+              Title
+            </Label>
+            <div className="flex-1 text-sm">
+              {loading ? (
+                <Skeleton className="h-4 w-40" />
+              ) : (
+                submission?.title || "Untitled"
+              )}
             </div>
           </div>
 
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
               DevPost URL
             </Label>
-            <div className="max-w-md flex-1 text-sm">
+            <div className="flex-1 text-sm">
               {loading ? (
-                ""
+                <Skeleton className="h-4 w-56" />
               ) : submission?.devpost_url ? (
                 <a
                   href={submission.devpost_url}
@@ -135,10 +142,12 @@ export function ProjectDetail({ id }: { id: string }) {
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">Video</Label>
-            <div className="max-w-md flex-1 text-sm">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+              Video
+            </Label>
+            <div className="flex-1 text-sm">
               {loading ? (
-                ""
+                <Skeleton className="h-4 w-56" />
               ) : submission?.video_url ? (
                 <a
                   href={submission.video_url}
@@ -158,12 +167,12 @@ export function ProjectDetail({ id }: { id: string }) {
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
               Repository
             </Label>
-            <div className="max-w-md flex-1 text-sm">
+            <div className="flex-1 text-sm">
               {loading ? (
-                ""
+                <Skeleton className="h-4 w-56" />
               ) : submission?.repo_url ? (
                 <a
                   href={submission.repo_url}
@@ -183,10 +192,12 @@ export function ProjectDetail({ id }: { id: string }) {
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">Demo</Label>
-            <div className="max-w-md flex-1 text-sm">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+              Demo
+            </Label>
+            <div className="flex-1 text-sm">
               {loading ? (
-                ""
+                <Skeleton className="h-4 w-56" />
               ) : submission?.demo_url ? (
                 <a
                   href={submission.demo_url}
@@ -206,10 +217,15 @@ export function ProjectDetail({ id }: { id: string }) {
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">Prizes</Label>
-            <div className="max-w-md flex-1">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+              Prizes
+            </Label>
+            <div className="flex-1">
               {loading ? (
-                ""
+                <div className="flex gap-1">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
               ) : submission?.prizes && submission.prizes.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {submission.prizes.map((prize) => (
@@ -240,11 +256,22 @@ export function ProjectDetail({ id }: { id: string }) {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 3 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="py-3 pl-6">
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell className="pr-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-8 rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : teamMembers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center">

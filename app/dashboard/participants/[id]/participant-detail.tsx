@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -92,34 +93,48 @@ export function ParticipantDetail({ id }: { id: string }) {
         <h1 className="text-2xl font-bold">Participant Details</h1>
       </div>
 
-      <Card className="max-w-3xl shadow-none">
+      <Card className="shadow-none">
         <CardContent className="p-0">
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
               First Name
             </Label>
-            <div className="max-w-md flex-1 text-sm">
-              {loading ? "" : participant?.first_name || "—"}
+            <div className="flex-1 text-sm">
+              {loading ? (
+                <Skeleton className="h-4 w-32" />
+              ) : (
+                participant?.first_name || "—"
+              )}
             </div>
           </div>
 
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
               Last Name
             </Label>
-            <div className="max-w-md flex-1 text-sm">
-              {loading ? "" : participant?.last_name || "—"}
+            <div className="flex-1 text-sm">
+              {loading ? (
+                <Skeleton className="h-4 w-32" />
+              ) : (
+                participant?.last_name || "—"
+              )}
             </div>
           </div>
 
           <div className="border-t" />
 
           <div className="flex items-center justify-between p-4">
-            <Label className="min-w-[120px] text-sm font-medium">Email</Label>
-            <div className="max-w-md flex-1 text-sm">
-              {loading ? "" : participant?.email || "—"}
+            <Label className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+              Email
+            </Label>
+            <div className="flex-1 text-sm">
+              {loading ? (
+                <Skeleton className="h-4 w-48" />
+              ) : (
+                participant?.email || "—"
+              )}
             </div>
           </div>
         </CardContent>
@@ -139,11 +154,25 @@ export function ParticipantDetail({ id }: { id: string }) {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 3 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="py-3 pl-6">
+                      <Skeleton className="h-4 w-6" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex gap-1">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="pr-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-8 rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : submissions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center">

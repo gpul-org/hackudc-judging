@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import { FileUp, X } from "lucide-react"
+import { FileUp, Loader2, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -77,9 +77,48 @@ export default function UploadPage() {
     }
   }
 
-  const handleUpload = () => {
+  const [isUploading, setIsUploading] = useState(false)
+
+  const handleUpload = async () => {
     if (!file) return
-    toast.success("Upload functionality coming soon")
+    setIsUploading(true)
+
+    try {
+      const supabase = createClient()
+
+      // Force session refresh to get a valid JWT
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        toast.error("You must be logged in to upload")
+        setIsUploading(false)
+        return
+      }
+
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const { data, error } = await supabase.functions.invoke("import-csv", {
+        body: formData
+      })
+
+      if (error) {
+        toast.error(error.message || "Upload failed")
+        return
+      }
+
+      toast.success(
+        `Imported ${data.participants} participants, ${data.submissions} projects, and ${data.links} links`
+      )
+      setFile(null)
+      if (inputRef.current) inputRef.current.value = ""
+    } catch {
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   const handleRemoveFile = () => {
@@ -150,8 +189,12 @@ export default function UploadPage() {
           )}
 
           <div className="flex justify-end">
-            <Button onClick={handleUpload} disabled={isDisabled || !file}>
-              Upload
+            <Button
+              onClick={handleUpload}
+              disabled={isDisabled || !file || isUploading}
+            >
+              {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isUploading ? "Importing..." : "Upload"}
             </Button>
           </div>
         </CardContent>

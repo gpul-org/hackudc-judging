@@ -142,12 +142,16 @@ Deno.serve(async (req) => {
           existing.prizes.push(prize)
         }
       } else {
+        const prizes = ["GENERAL"]
+        if (prize && prize !== "GENERAL") {
+          prizes.push(prize)
+        }
         submissionsMap.set(submissionUrl, {
           title: projectTitle,
           repo_url: repoUrl,
           demo_url: demoUrl,
           video_url: videoUrl,
-          prizes: prize ? [prize] : [],
+          prizes,
         })
       }
 

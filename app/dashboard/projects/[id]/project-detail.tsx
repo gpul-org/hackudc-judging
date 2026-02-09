@@ -1,6 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { PrizeBadge } from "@/components/prize-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -229,9 +229,7 @@ export function ProjectDetail({ id }: { id: string }) {
               ) : submission?.prizes && submission.prizes.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {submission.prizes.map((prize) => (
-                    <Badge key={prize} variant="secondary">
-                      {prize}
-                    </Badge>
+                    <PrizeBadge key={prize} prize={prize} />
                   ))}
                 </div>
               ) : (

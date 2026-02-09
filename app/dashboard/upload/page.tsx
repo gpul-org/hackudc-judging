@@ -1,12 +1,21 @@
 "use client"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import { FileUp, Loader2, X } from "lucide-react"
+import { FileUp, Loader2, Trash2, Upload, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -15,6 +24,11 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isClearing, setIsClearing] = useState(false)
+  const [clearDialogOpen, setClearDialogOpen] = useState(false)
+  const [confirmText, setConfirmText] = useState("")
+  const [counts, setCounts] = useState({ participants: 0, projects: 0 })
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -33,6 +47,18 @@ export default function UploadPage() {
 
         setUserRole(profile?.role || null)
       }
+
+      const [{ count: pCount }, { count: sCount }] = await Promise.all([
+        supabase
+          .from("participants")
+          .select("*", { count: "exact", head: true }),
+        supabase.from("submissions").select("*", { count: "exact", head: true })
+      ])
+      setCounts({
+        participants: pCount ?? 0,
+        projects: sCount ?? 0
+      })
+
       setLoading(false)
     }
 
@@ -77,7 +103,45 @@ export default function UploadPage() {
     }
   }
 
-  const [isUploading, setIsUploading] = useState(false)
+  const handleClearData = async () => {
+    setIsClearing(true)
+    try {
+      const supabase = createClient()
+      const { error: linkError } = await supabase
+        .from("submission_participants")
+        .delete()
+        .neq("participant_id", "00000000-0000-0000-0000-000000000000")
+      if (linkError) throw linkError
+
+      const { error: subError } = await supabase
+        .from("submissions")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000")
+      if (subError) throw subError
+
+      const { error: partError } = await supabase
+        .from("participants")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000")
+      if (partError) throw partError
+
+      const { error: seqError } = await supabase.rpc(
+        "reset_submissions_sequence"
+      )
+      if (seqError) throw seqError
+
+      toast.success("All uploaded data has been cleared")
+      setCounts({ participants: 0, projects: 0 })
+      setFile(null)
+      if (inputRef.current) inputRef.current.value = ""
+    } catch {
+      toast.error("Failed to clear data. Please try again.")
+    } finally {
+      setIsClearing(false)
+      setClearDialogOpen(false)
+      setConfirmText("")
+    }
+  }
 
   const handleUpload = async () => {
     if (!file) return
@@ -86,7 +150,6 @@ export default function UploadPage() {
     try {
       const supabase = createClient()
 
-      // Force session refresh to get a valid JWT
       const {
         data: { user }
       } = await supabase.auth.getUser()
@@ -127,78 +190,148 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Upload the CSV exported from DevPost to import hackathon data into the
-        system.
-      </p>
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          {isDisabled && (
-            <p className="text-sm text-muted-foreground">
-              Only administrators can upload files
-            </p>
-          )}
-          <div className="grid gap-2">
-            <Label htmlFor="file">File</Label>
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => !isDisabled && inputRef.current?.click()}
-              className={cn(
-                "flex min-h-[160px] flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center transition-colors",
-                isDragging && "border-primary bg-accent",
-                isDisabled
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer hover:border-primary/50 hover:bg-accent/50"
-              )}
-            >
-              <FileUp className="h-8 w-8 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">
-                  Click to browse or drag and drop
-                </p>
-                <p className="text-xs text-muted-foreground">CSV files only</p>
-              </div>
-              <Input
-                ref={inputRef}
-                id="file"
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                disabled={isDisabled}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          {file && (
-            <div className="flex items-center justify-between rounded-md border px-4 py-3">
-              <div className="flex items-center gap-3 text-sm">
-                <FileUp className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{file.name}</span>
-                <span className="text-muted-foreground">
-                  ({(file.size / 1024).toFixed(1)} KB)
-                </span>
-              </div>
-              <Button variant="ghost" size="icon" onClick={handleRemoveFile}>
-                <X className="h-4 w-4" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          Upload the CSV exported from DevPost to import hackathon data.
+        </p>
+        {userRole === "admin" && (
+          <AlertDialog
+            open={clearDialogOpen}
+            onOpenChange={(open) => {
+              setClearDialogOpen(open)
+              if (!open) setConfirmText("")
+            }}
+          >
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+                disabled={isClearing}
+              >
+                {isClearing ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 h-4 w-4" />
+                )}
+                {isClearing ? "Clearing..." : "Clear data"}
               </Button>
-            </div>
-          )}
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-3">
+                    <p>
+                      This will permanently delete all uploaded data. This
+                      action cannot be undone.
+                    </p>
+                    <div className="flex gap-4 text-sm font-medium text-foreground">
+                      <span>{counts.participants} participants</span>
+                      <span>{counts.projects} projects</span>
+                    </div>
+                    <p>
+                      Type{" "}
+                      <span className="font-mono font-semibold text-destructive">
+                        DELETE
+                      </span>{" "}
+                      to confirm.
+                    </p>
+                    <Input
+                      value={confirmText}
+                      onChange={(e) => setConfirmText(e.target.value)}
+                      placeholder="DELETE"
+                      className="font-mono"
+                    />
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearData}
+                  disabled={confirmText !== "DELETE" || isClearing}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isClearing ? "Clearing..." : "Yes, clear all data"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
 
-          <div className="flex justify-end">
+      {isDisabled && !loading && (
+        <p className="text-sm text-muted-foreground">
+          Only administrators can upload files.
+        </p>
+      )}
+
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => !isDisabled && inputRef.current?.click()}
+        className={cn(
+          "flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-md border border-dashed p-6 text-center transition-colors",
+          isDragging && "border-primary bg-accent",
+          isDisabled
+            ? "cursor-not-allowed opacity-50"
+            : "cursor-pointer hover:border-primary/50 hover:bg-accent/50"
+        )}
+      >
+        <FileUp className="h-8 w-8 text-muted-foreground" />
+        <div>
+          <p className="text-sm font-medium">
+            Click to browse or drag and drop
+          </p>
+          <p className="text-xs text-muted-foreground">CSV files only</p>
+        </div>
+        <Input
+          ref={inputRef}
+          id="file"
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+          disabled={isDisabled}
+          className="hidden"
+        />
+      </div>
+
+      {file && (
+        <div className="flex items-center justify-between rounded-md border px-4 py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <FileUp className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{file.name}</span>
+            <span className="text-muted-foreground">
+              ({(file.size / 1024).toFixed(1)} KB)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
             <Button
               onClick={handleUpload}
-              disabled={isDisabled || !file || isUploading}
+              size="sm"
+              disabled={isDisabled || isUploading}
             >
-              {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isUploading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="mr-2 h-4 w-4" />
+              )}
               {isUploading ? "Importing..." : "Upload"}
             </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRemoveFile}
+              disabled={isUploading}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   )
 }

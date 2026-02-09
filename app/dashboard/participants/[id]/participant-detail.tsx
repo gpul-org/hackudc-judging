@@ -1,6 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { PrizeBadge } from "@/components/prize-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -191,9 +191,7 @@ export function ParticipantDetail({ id }: { id: string }) {
                     <TableCell className="py-3">
                       <div className="flex flex-wrap gap-1">
                         {s.prizes.map((prize) => (
-                          <Badge key={prize} variant="secondary">
-                            {prize}
-                          </Badge>
+                          <PrizeBadge key={prize} prize={prize} />
                         ))}
                       </div>
                     </TableCell>

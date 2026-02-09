@@ -13,6 +13,7 @@ import {
   FileText,
   Gavel,
   Home,
+  ShieldCheck,
   Trophy,
   Upload,
   UserCog,
@@ -62,7 +63,13 @@ const navItems = [
   {
     title: "Rooms",
     href: "/dashboard/rooms",
-    icon: DoorOpen
+    icon: DoorOpen,
+    separatorAfter: true
+  },
+  {
+    title: "Admins",
+    href: "/dashboard/admins",
+    icon: ShieldCheck
   }
 ]
 

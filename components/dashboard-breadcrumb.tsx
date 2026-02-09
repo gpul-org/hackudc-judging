@@ -19,6 +19,7 @@ const routeNames: Record<string, string> = {
   "/dashboard/participants": "Participants",
   "/dashboard/projects": "Projects",
   "/dashboard/judges": "Judges",
+  "/dashboard/admins": "Admins",
   "/dashboard/challenges": "Challenges",
   "/dashboard/rooms": "Rooms",
   "/dashboard/profile": "Profile"

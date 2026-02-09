@@ -17,61 +17,61 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
-interface Judge {
+interface Admin {
   id: string
   email: string
   first_name: string | null
   last_name: string | null
 }
 
-export default function JudgesPage() {
-  const [judges, setJudges] = useState<Judge[]>([])
+export default function AdminsPage() {
+  const [admins, setAdmins] = useState<Admin[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const itemsPerPage = 10
 
-  const fetchJudges = useRef(async () => {
+  const fetchAdmins = useRef(async () => {
     const supabase = createClient()
     const { data, error } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
-      .eq("role", "judge")
+      .eq("role", "admin")
       .order("first_name")
 
     if (error) {
-      toast.error("Failed to fetch judges")
+      toast.error("Failed to fetch admins")
       console.error(error)
       return
     }
 
-    setJudges(data || [])
+    setAdmins(data || [])
     setLoading(false)
   })
 
   useEffect(() => {
-    fetchJudges.current()
+    fetchAdmins.current()
   }, [])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await fetchJudges.current()
+    await fetchAdmins.current()
     setIsRefreshing(false)
   }
 
-  const filteredJudges = judges.filter((j) => {
+  const filteredAdmins = admins.filter((a) => {
     const term = searchTerm.toLowerCase()
     return (
-      j.email.toLowerCase().includes(term) ||
-      (j.first_name || "").toLowerCase().includes(term) ||
-      (j.last_name || "").toLowerCase().includes(term)
+      a.email.toLowerCase().includes(term) ||
+      (a.first_name || "").toLowerCase().includes(term) ||
+      (a.last_name || "").toLowerCase().includes(term)
     )
   })
 
-  const totalPages = Math.ceil(filteredJudges.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredAdmins.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedJudges = filteredJudges.slice(
+  const paginatedAdmins = filteredAdmins.slice(
     startIndex,
     startIndex + itemsPerPage
   )
@@ -90,8 +90,8 @@ export default function JudgesPage() {
             className="max-w-sm shadow-none"
           />
           <div className="whitespace-nowrap text-sm text-muted-foreground">
-            {filteredJudges.length}{" "}
-            {filteredJudges.length === 1 ? "judge" : "judges"}
+            {filteredAdmins.length}{" "}
+            {filteredAdmins.length === 1 ? "admin" : "admins"}
           </div>
         </div>
         <Button
@@ -99,7 +99,7 @@ export default function JudgesPage() {
           size="icon"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          title="Refresh judges"
+          title="Refresh admins"
         >
           <RefreshCw
             className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -135,24 +135,24 @@ export default function JudgesPage() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : paginatedJudges.length === 0 ? (
+            ) : paginatedAdmins.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center">
-                  No judges found
+                  No admins found
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedJudges.map((j) => (
-                <TableRow key={j.id}>
+              paginatedAdmins.map((a) => (
+                <TableRow key={a.id}>
                   <TableCell className="py-3 pl-6 font-medium">
-                    {j.first_name || "—"}
+                    {a.first_name || "—"}
                   </TableCell>
-                  <TableCell className="py-3">{j.last_name || "—"}</TableCell>
+                  <TableCell className="py-3">{a.last_name || "—"}</TableCell>
                   <TableCell className="py-3 text-muted-foreground">
-                    {j.email}
+                    {a.email}
                   </TableCell>
                   <TableCell className="pr-4 text-right">
-                    <Link href={`/dashboard/judges/${j.id}`}>
+                    <Link href={`/dashboard/admins/${a.id}`}>
                       <Button variant="ghost" size="icon">
                         <ChevronRight className="h-4 w-4" />
                       </Button>

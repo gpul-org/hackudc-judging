@@ -12,7 +12,7 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronRight, RefreshCw } from "lucide-react"
+import { ChevronRight, RefreshCw, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -136,11 +136,29 @@ export default function AdminsPage() {
                 </TableRow>
               ))
             ) : paginatedAdmins.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">
-                  No admins found
-                </TableCell>
-              </TableRow>
+              admins.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-60">
+                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                      <div className="rounded-full bg-muted p-3">
+                        <ShieldCheck className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium">No admins yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          Users assigned the Admin role will appear here
+                        </p>
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    No admins found
+                  </TableCell>
+                </TableRow>
+              )
             ) : (
               paginatedAdmins.map((a) => (
                 <TableRow key={a.id}>

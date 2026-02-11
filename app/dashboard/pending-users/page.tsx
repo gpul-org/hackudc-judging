@@ -12,7 +12,7 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
-import { RefreshCw, Shield, UserCheck } from "lucide-react"
+import { Clock, RefreshCw, Shield, UserCheck } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -181,11 +181,29 @@ export default function PendingUsersPage() {
                 </TableRow>
               ))
             ) : paginatedUsers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center">
-                  No pending users found
-                </TableCell>
-              </TableRow>
+              users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-60">
+                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                      <div className="rounded-full bg-muted p-3">
+                        <Clock className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium">No pending users</p>
+                        <p className="text-sm text-muted-foreground">
+                          New users that sign up will appear here for approval
+                        </p>
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center">
+                    No pending users found
+                  </TableCell>
+                </TableRow>
+              )
             ) : (
               paginatedUsers.map((user) => (
                 <TableRow key={user.id}>

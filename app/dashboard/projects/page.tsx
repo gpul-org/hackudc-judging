@@ -26,7 +26,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronRight, RefreshCw } from "lucide-react"
+import { ChevronRight, RefreshCw, Upload } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -198,11 +198,32 @@ export default function ProjectsPage() {
                   </TableRow>
                 ))
               ) : paginatedSubmissions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    No projects found
-                  </TableCell>
-                </TableRow>
+                submissions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-60">
+                      <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <div className="rounded-full bg-muted p-3">
+                          <Upload className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="text-center">
+                          <p className="font-medium">No projects yet</p>
+                          <p className="text-sm text-muted-foreground">
+                            Upload a CSV file to import projects
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href="/dashboard/upload">Go to Upload</Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No projects found
+                    </TableCell>
+                  </TableRow>
+                )
               ) : (
                 paginatedSubmissions.map((s) => (
                   <TableRow key={s.id}>

@@ -1,5 +1,6 @@
 "use client"
 
+import { AddProjectSheet } from "@/components/add-project-sheet"
 import { PrizeBadge } from "@/components/prize-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,7 +27,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronRight, RefreshCw, Upload } from "lucide-react"
+import { ChevronRight, Plus, RefreshCw, Upload } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -57,6 +58,7 @@ export default function ProjectsPage() {
   const [selectedPrize, setSelectedPrize] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [addSheetOpen, setAddSheetOpen] = useState(false)
   const itemsPerPage = 10
 
   const fetchSubmissions = useRef(async () => {
@@ -148,18 +150,33 @@ export default function ProjectsPage() {
             {filteredSubmissions.length === 1 ? "project" : "projects"}
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          title="Refresh projects"
-        >
-          <RefreshCw
-            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh projects"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+          </Button>
+          <Button
+            size="icon"
+            onClick={() => setAddSheetOpen(true)}
+            title="Add project"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+
+      <AddProjectSheet
+        open={addSheetOpen}
+        onOpenChange={setAddSheetOpen}
+        onCreated={() => fetchSubmissions.current()}
+      />
 
       <TooltipProvider>
         <div className="rounded-md border">

@@ -1,5 +1,6 @@
 "use client"
 
+import { AddParticipantSheet } from "@/components/add-participant-sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -12,7 +13,7 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronRight, RefreshCw, Upload } from "lucide-react"
+import { ChevronRight, Plus, RefreshCw, Upload } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -30,6 +31,7 @@ export default function ParticipantsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [addSheetOpen, setAddSheetOpen] = useState(false)
   const itemsPerPage = 10
 
   const fetchParticipants = useRef(async () => {
@@ -93,18 +95,33 @@ export default function ParticipantsPage() {
             {filteredParticipants.length === 1 ? "participant" : "participants"}
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          title="Refresh participants"
-        >
-          <RefreshCw
-            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh participants"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+          </Button>
+          <Button
+            size="icon"
+            onClick={() => setAddSheetOpen(true)}
+            title="Add participant"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+
+      <AddParticipantSheet
+        open={addSheetOpen}
+        onOpenChange={setAddSheetOpen}
+        onCreated={() => fetchParticipants.current()}
+      />
 
       <div className="rounded-md border">
         <Table>

@@ -1,6 +1,17 @@
 "use client"
 
+import { EditProjectSheet } from "@/components/edit-project-sheet"
 import { PrizeBadge } from "@/components/prize-badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -14,8 +25,9 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronRight, ExternalLink } from "lucide-react"
+import { ChevronRight, ExternalLink, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -38,65 +50,107 @@ interface TeamMember {
 }
 
 export function ProjectDetail({ id }: { id: string }) {
+  const router = useRouter()
   const [submission, setSubmission] = useState<Submission | null>(null)
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [editSheetOpen, setEditSheetOpen] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const supabase = createClient()
+  const fetchData = async () => {
+    const supabase = createClient()
 
-      const { data: submissionData, error: submissionError } = await supabase
-        .from("submissions")
-        .select(
-          "id, number, title, devpost_url, repo_url, demo_url, video_url, prizes"
-        )
-        .eq("id", id)
-        .single()
-
-      if (submissionError) {
-        toast.error("Failed to fetch project")
-        console.error(submissionError)
-        setLoading(false)
-        return
-      }
-
-      setSubmission(submissionData)
-      window.dispatchEvent(
-        new CustomEvent("breadcrumbLabel", {
-          detail: submissionData.title || `Project #${submissionData.number}`
-        })
+    const { data: submissionData, error: submissionError } = await supabase
+      .from("submissions")
+      .select(
+        "id, number, title, devpost_url, repo_url, demo_url, video_url, prizes"
       )
+      .eq("id", id)
+      .single()
 
-      const { data: participantData, error: participantError } = await supabase
-        .from("submission_participants")
-        .select("participants(id, first_name, last_name, email)")
-        .eq("submission_id", id)
-
-      if (participantError) {
-        toast.error("Failed to fetch team members")
-        console.error(participantError)
-        setLoading(false)
-        return
-      }
-
-      const members = (participantData || [])
-        .map(
-          (sp: Record<string, unknown>) => sp.participants as TeamMember | null
-        )
-        .filter(Boolean) as TeamMember[]
-
-      setTeamMembers(members)
+    if (submissionError) {
+      toast.error("Failed to fetch project")
+      console.error(submissionError)
       setLoading(false)
+      return
     }
 
+    setSubmission(submissionData)
+    window.dispatchEvent(
+      new CustomEvent("breadcrumbLabel", {
+        detail: submissionData.title || `Project #${submissionData.number}`
+      })
+    )
+
+    const { data: participantData, error: participantError } = await supabase
+      .from("submission_participants")
+      .select("participants(id, first_name, last_name, email)")
+      .eq("submission_id", id)
+
+    if (participantError) {
+      toast.error("Failed to fetch team members")
+      console.error(participantError)
+      setLoading(false)
+      return
+    }
+
+    const members = (participantData || [])
+      .map(
+        (sp: Record<string, unknown>) => sp.participants as TeamMember | null
+      )
+      .filter(Boolean) as TeamMember[]
+
+    setTeamMembers(members)
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    const supabase = createClient()
+    const { error } = await supabase.from("submissions").delete().eq("id", id)
+    setDeleting(false)
+
+    if (error) {
+      toast.error("Failed to delete project")
+      console.error(error)
+      return
+    }
+
+    toast.success("Project deleted")
+    router.push("/dashboard/projects")
+  }
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Project Details</h1>
+        {!loading && submission && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditSheetOpen(true)}
+            >
+              <Pencil className="mr-1.5 h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Delete
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card className="shadow-none">
@@ -300,6 +354,39 @@ export function ProjectDetail({ id }: { id: string }) {
           </Table>
         </div>
       </div>
+
+      {submission && (
+        <EditProjectSheet
+          key={`${submission.id}-${submission.title}-${submission.devpost_url}-${teamMembers.map((m) => m.id).join(",")}`}
+          open={editSheetOpen}
+          onOpenChange={setEditSheetOpen}
+          submission={submission}
+          initialTeamMembers={teamMembers}
+          onUpdated={fetchData}
+        />
+      )}
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete project</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this project and all team member
+              associations. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

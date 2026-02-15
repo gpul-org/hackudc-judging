@@ -1,6 +1,17 @@
 "use client"
 
+import { EditParticipantSheet } from "@/components/edit-participant-sheet"
 import { PrizeBadge } from "@/components/prize-badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -14,8 +25,9 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -35,62 +47,102 @@ interface Submission {
 }
 
 export function ParticipantDetail({ id }: { id: string }) {
+  const router = useRouter()
   const [participant, setParticipant] = useState<Participant | null>(null)
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
+  const [editSheetOpen, setEditSheetOpen] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const supabase = createClient()
+  const fetchData = async () => {
+    const supabase = createClient()
 
-      const { data: participantData, error: participantError } = await supabase
-        .from("participants")
-        .select("id, email, first_name, last_name")
-        .eq("id", id)
-        .single()
+    const { data: participantData, error: participantError } = await supabase
+      .from("participants")
+      .select("id, email, first_name, last_name")
+      .eq("id", id)
+      .single()
 
-      if (participantError) {
-        toast.error("Failed to fetch participant")
-        console.error(participantError)
-        setLoading(false)
-        return
-      }
-
-      setParticipant(participantData)
-      window.dispatchEvent(
-        new CustomEvent("breadcrumbLabel", { detail: participantData.email })
-      )
-
-      const { data: submissionData, error: submissionError } = await supabase
-        .from("submission_participants")
-        .select("submissions(id, number, title, devpost_url, prizes)")
-        .eq("participant_id", id)
-
-      if (submissionError) {
-        toast.error("Failed to fetch projects")
-        console.error(submissionError)
-        setLoading(false)
-        return
-      }
-
-      const projects = (submissionData || [])
-        .map(
-          (sp: Record<string, unknown>) => sp.submissions as Submission | null
-        )
-        .filter(Boolean) as Submission[]
-
-      projects.sort((a, b) => a.number - b.number)
-      setSubmissions(projects)
+    if (participantError) {
+      toast.error("Failed to fetch participant")
+      console.error(participantError)
       setLoading(false)
+      return
     }
 
+    setParticipant(participantData)
+    window.dispatchEvent(
+      new CustomEvent("breadcrumbLabel", { detail: participantData.email })
+    )
+
+    const { data: submissionData, error: submissionError } = await supabase
+      .from("submission_participants")
+      .select("submissions(id, number, title, devpost_url, prizes)")
+      .eq("participant_id", id)
+
+    if (submissionError) {
+      toast.error("Failed to fetch projects")
+      console.error(submissionError)
+      setLoading(false)
+      return
+    }
+
+    const projects = (submissionData || [])
+      .map((sp: Record<string, unknown>) => sp.submissions as Submission | null)
+      .filter(Boolean) as Submission[]
+
+    projects.sort((a, b) => a.number - b.number)
+    setSubmissions(projects)
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    const supabase = createClient()
+    const { error } = await supabase.from("participants").delete().eq("id", id)
+    setDeleting(false)
+
+    if (error) {
+      toast.error("Failed to delete participant")
+      console.error(error)
+      return
+    }
+
+    toast.success("Participant deleted")
+    router.push("/dashboard/participants")
+  }
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Participant Details</h1>
+        {!loading && participant && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditSheetOpen(true)}
+            >
+              <Pencil className="mr-1.5 h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Delete
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card className="shadow-none">
@@ -209,6 +261,38 @@ export function ParticipantDetail({ id }: { id: string }) {
           </Table>
         </div>
       </div>
+
+      {participant && (
+        <EditParticipantSheet
+          key={`${participant.id}-${participant.email}-${participant.first_name}-${participant.last_name}`}
+          open={editSheetOpen}
+          onOpenChange={setEditSheetOpen}
+          participant={participant}
+          onUpdated={fetchData}
+        />
+      )}
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete participant</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this participant and remove them from
+              all projects. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
